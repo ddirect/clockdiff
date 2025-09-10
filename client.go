@@ -54,11 +54,11 @@ func Client(conf Config) error {
 		invalid int
 	)
 
-	inflight := ttlmap.New[packetID, TransInfo](time.Second, 100*time.Millisecond)
+	inflight, expired := ttlmap.New[packetID, TransInfo](time.Second, 100*time.Millisecond)
 
 	for {
 		select {
-		case seq := <-inflight.Expired():
+		case seq := <-expired:
 			for ti := range seq {
 				if !ti.Value.Processed {
 					lost++
