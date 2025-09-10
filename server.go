@@ -34,14 +34,14 @@ func Server(conf Config) error {
 
 	log.Printf("listening on %s", socket.AddrToString(localAddr))
 
-	store := ttlmap.New[string, Timing](time.Minute, time.Second)
+	store, expired := ttlmap.New[string, Timing](time.Minute, time.Second)
 
 	send := packet.NewSender[Data](fd, conf.usePoll)
 	recvCh := packet.NewAsyncReceiver[Data](fd, 16)
 
 	for {
 		select {
-		case clients := <-store.Expired():
+		case clients := <-expired:
 			for client := range clients {
 				log.Printf("client %s expired", client.Key())
 			}
