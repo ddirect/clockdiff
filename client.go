@@ -60,7 +60,7 @@ func Client(conf Config) error {
 		select {
 		case seq := <-expired:
 			for ti := range seq {
-				if !ti.Value.Processed {
+				if !ti.Value().Processed {
 					lost++
 				}
 			}
@@ -77,18 +77,18 @@ func Client(conf Config) error {
 				continue
 			}
 			if i1 := inflight.Get(recvPkt.Data.PacketID); i1.Present() {
-				i1.Value.RecvTs = recvPkt.Ts
+				i1.Value().RecvTs = recvPkt.Ts
 			} else {
 				invalid++
 			}
 			if st := &recvPkt.Data.ServerTime; st.IsPopulated() {
-				if i2 := inflight.Get(st.PacketID); i2.Present() && i2.Value.RecvTs > 0 && !i2.Value.Processed {
-					i2.Value.Processed = true
+				if i2 := inflight.Get(st.PacketID); i2.Present() && i2.Value().RecvTs > 0 && !i2.Value().Processed {
+					i2.Value().Processed = true
 					sampleCh <- Sample{
-						RequestSendTime:  i2.Value.SendTs,
+						RequestSendTime:  i2.Value().SendTs,
 						RequestRecvTime:  st.RecvTime,
 						ResponseSendTime: st.SendTime,
-						ResponseRecvTime: i2.Value.RecvTs,
+						ResponseRecvTime: i2.Value().RecvTs,
 						LostCount:        lost,
 						InvalidCount:     invalid,
 					}

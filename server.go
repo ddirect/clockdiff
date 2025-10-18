@@ -54,7 +54,7 @@ func Server(conf Config) error {
 
 			timing, found := store.GetOrCreate(socket.AddrToString(recvPkt.From))
 			if found {
-				recvPkt.Data.ServerTime = timing.Value
+				recvPkt.Data.ServerTime = *timing.Value()
 			} else {
 				log.Printf("new client %s", timing.Key())
 			}
@@ -65,7 +65,7 @@ func Server(conf Config) error {
 				continue
 			}
 
-			timing.Value = Timing{
+			*timing.Value() = Timing{
 				PacketID: recvPkt.Data.PacketID,
 				RecvTime: recvPkt.Ts,
 				SendTime: sendTs,
