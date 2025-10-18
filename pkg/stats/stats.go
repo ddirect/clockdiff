@@ -29,7 +29,7 @@ func New[T constraints.Signed](maxSamples int, maxSpread float64) *Stats[T] {
 
 func (s *Stats[T]) SampleIn(x T) bool {
 	validRange := T(float64(s.stdDev) * s.maxSpread)
-	inRange := x >= s.mean-validRange && x <= s.mean+validRange
+	inRange := validRange <= 0 || (x >= s.mean-validRange && x <= s.mean+validRange)
 
 	var valid bool
 	if s.SampleCount() < s.maxSamples {

@@ -31,7 +31,7 @@ func mainErr() error {
 	flag.IntVar(&conf.maxSamples, "max-samples", 1000, "maximum number of samples")
 	flag.StringVar(&conf.ep, "ep", ":12510", "endpoint to connect to or local endpoint in server mode")
 	flag.StringVar(&conf.mode, "mode", "diff", "log mode")
-	flag.Float64Var(&conf.maxSpread, "max-spread", 3, "max spread of samples to be considered valid (after max-samples), as a factor of the standard deviation")
+	flag.Float64Var(&conf.maxSpread, "max-spread", 3, "max spread of samples to be considered valid (after max-samples), as a factor of the standard deviation, or zero to accept all")
 	flag.BoolVar(&conf.usePoll, "wait-tx-timestamps", false, "use ppoll to wait for TX timestamps")
 
 	flag.Parse()
