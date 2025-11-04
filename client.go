@@ -22,7 +22,7 @@ func Client(conf Config) error {
 	sampleCh := make(chan Sample, 16)
 	defer close(sampleCh)
 
-	go Process(sampleCh, conf.mode, conf.maxSamples, conf.maxSpread)
+	go Process(sampleCh, conf)
 
 	addr, err := net.ResolveUDPAddr(conf.network, conf.ep)
 	if err != nil {

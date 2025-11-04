@@ -8,23 +8,39 @@ import (
 )
 
 type Stats[T constraints.Signed] struct {
-	sum        big.Int
-	sum2       big.Int
-	t1         big.Int
-	t2         big.Int
-	t3         big.Int
-	samples    fifo.Fifo[T]
-	maxSamples int
-	maxSpread  float64
-	mean       T
-	stdDev     T
+	// settings
+	maxSamples       int
+	maxInvalidStreak int
+	maxSpread        float64
+
+	// temp values
+	t1 big.Int
+	t2 big.Int
+	t3 big.Int
+
+	// state
+	sum           big.Int
+	sum2          big.Int
+	samples       fifo.Fifo[T]
+	mean          T
+	stdDev        T
+	invalidStreak int
 }
 
-func New[T constraints.Signed](maxSamples int, maxSpread float64) *Stats[T] {
+func New[T constraints.Signed](maxSamples int, maxSpread float64, maxInvalidStreak int) *Stats[T] {
 	return &Stats[T]{
-		maxSamples: maxSamples,
-		maxSpread:  maxSpread,
+		maxSamples:       maxSamples,
+		maxInvalidStreak: maxInvalidStreak,
+		maxSpread:        maxSpread,
 	}
+}
+
+func (s *Stats[T]) Reset() {
+	s.sum.SetUint64(0)
+	s.sum2.SetUint64(0)
+	s.samples.Clear()
+	s.mean = 0
+	s.stdDev = 0
 }
 
 func (s *Stats[T]) SampleIn(x T) bool {
@@ -41,15 +57,22 @@ func (s *Stats[T]) SampleIn(x T) bool {
 		}
 	}
 
-	if valid {
-		t := s.t1.SetInt64(int64(x))
-		s.sum.Add(&s.sum, t)
-		s.sum2.Add(&s.sum2, t.Mul(t, t))
-		s.samples.Enqueue(x)
-		s.mean = s.getMean()
-		s.stdDev = s.getStdDev()
+	if !valid {
+		s.invalidStreak++
+		if s.maxInvalidStreak == 0 || s.invalidStreak < s.maxInvalidStreak {
+			return false
+		}
+		s.Reset()
 	}
-	return valid
+	s.invalidStreak = 0
+
+	t := s.t1.SetInt64(int64(x))
+	s.sum.Add(&s.sum, t)
+	s.sum2.Add(&s.sum2, t.Mul(t, t))
+	s.samples.Enqueue(x)
+	s.mean = s.getMean()
+	s.stdDev = s.getStdDev()
+	return true
 }
 
 func (s *Stats[T]) SampleOut() {
