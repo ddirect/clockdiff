@@ -22,7 +22,7 @@ func core(t *testing.T, offset int64, samples []byte) {
 		return
 	}
 
-	s := stats.New[int64](maxSamples, 0) // spread is not used here since we always have a number of samples <= maxSamples
+	s := stats.New[int64](maxSamples, 0, maxSamples) // spread is not used here since we always have a number of samples <= maxSamples
 
 	tr := new(big.Rat)
 	ti := new(big.Int)
